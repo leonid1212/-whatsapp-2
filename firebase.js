@@ -2,8 +2,8 @@
 
 
 import { initializeApp, getApp, getApps } from "firebase/app";
-import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, addDoc, query, where, orderBy } from 'firebase/firestore';
-import { getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, addDoc, query, where, orderBy, getDoc } from 'firebase/firestore';
+import { debugErrorMap, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZqYdYS50Y8l1kgdnm5h_tyov1IiBg2dE",
@@ -19,6 +19,42 @@ const db = getFirestore();
 const auth = getAuth();
 const provider = new GoogleAuthProvider();
 
+
+const useMessages = (chatId) => {
+  const chatsRef = doc(db, 'chats', chatId);
+  const messagesRef = collection(chatsRef, 'messages');
+  const messagesResQuery = query(messagesRef, orderBy('timestamp', 'asc'));
+
+  const messages = async () => {
+    const messagesQuerySnapshot = await getDocs(messagesResQuery);
+    const result = messagesQuerySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data()
+    })).map(messages => ({
+      ...messages,
+      timestamp: messages.timestamp.toDate().getTime()
+    }));
+
+    return result;
+  }
+
+
+  const addMessage = async (body) => {
+    const docRef = await addDoc(messagesRef, body);
+    return docRef.id;   
+  }
+
+
+  return { messagesResQuery, chatsRef, messages, addMessage };
+}
+
+
+const setUser = async (uid, data) => {
+  const usersRef = collection(db, "users");
+  await setDoc(doc(usersRef, uid), data, { merge: true });
+}
+
+
 export {
   db,
   auth,
@@ -26,6 +62,7 @@ export {
   GoogleAuthProvider,
   collection,
   getDocs,
+  getDoc,
   signInWithPopup,
   doc,
   setDoc,
@@ -34,5 +71,7 @@ export {
   query,
   where,
   orderBy,
+  useMessages,
+  setUser,
 };
 

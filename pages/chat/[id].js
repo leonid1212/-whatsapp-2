@@ -1,19 +1,23 @@
 import Head from "next/head";
+import { useAuthState } from "react-firebase-hooks/auth";
 import styled from "styled-components";
 import ChatScreeen from "../../components/ChatScreen";
 import Sidebar from "../../components/Sidebar";
-import { db, auth, addDoc, query, where, collection, doc, orderBy, getDocs } from "../../firebase";
+import { db, auth, addDoc, query, where, collection, doc, orderBy, getDocs, getDoc, useMessages } from "../../firebase";
+import getRecipientEmail from "../../utils/getRecipientEmail";
 
-function Chat({ id }) {
+function Chat({messages,chat}) {
+
+  const [user] = useAuthState(auth); 
   return (
     <Container>
       <Head>
-        <title>{id}</title>
+        <title>Chat with  {getRecipientEmail(chat.users,user)}</title>
 
       </Head>
       <Sidebar />
       <ChatContainer >
-        <ChatScreeen />
+        <ChatScreeen  chat={chat} messages={messages}/>
       </ChatContainer>
 
     </Container>
@@ -25,21 +29,21 @@ export default Chat
 
 
 export async function getServerSideProps(context) {
-  const chatsRef = doc(db, 'chats', context.query.id);
-  const messagesRef = collection(chatsRef, 'messages');
-  const messagesResQuery = query(messagesRef, orderBy('timestamp', 'asc'));
-  const querySnapshot = await getDocs(messagesResQuery);
-  const messages = querySnapshot.docs.map((doc) => ({
-    id: doc.id,
-    ...doc.data()
-  })).map(messages => ({
-    ...messages,
-    timestamp: messages.timestamp.toDate().getTime()
-  }));
+  const { messagesResQuery , chatsRef, messages }  =  useMessages(context.query.id);
 
+  const docSnap = await getDoc(chatsRef);
+  const chat = {
+    id: docSnap.id,
+    ...docSnap.data(),
+  }
+
+  const fbMessages = messages();
 
   return {
-    props: { messages : messages},
+    props: {
+      messages: JSON.stringify(fbMessages),
+      chat: chat,
+    }
   }
 }
 
