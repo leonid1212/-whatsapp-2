@@ -11,13 +11,14 @@ import MicIcon from "@material-ui/icons/Mic";
 import { useCollection } from "react-firebase-hooks/firestore";
 import Message from "./Message";
 import getRecipientEmail from "../utils/getRecipientEmail";
-import { useState } from "react";
+import { useState ,useRef } from "react";
 import TimeAgo from "timeago-react";
 
 
 function ChatScreeen({ chat, messages }) {
   const [user] = useAuthState(auth);
   const router = useRouter();
+  const endOfMessagesRef = useRef();
   const [input, setInput] = useState("");
   const { messagesResQuery, addMessage } = useMessages(router.query.id);
   const [messagesSnapshot] = useCollection(messagesResQuery);
@@ -38,9 +39,16 @@ function ChatScreeen({ chat, messages }) {
     });
 
     setInput("");
-
+    scrollToBottom();
   }
 
+
+  const scrollToBottom = () => {
+    endOfMessagesRef.current.scrollIntoView({
+      behavior : "smooth",
+      block : "start",
+    });
+  }
 
   const showMessages = () => {
     if (messagesSnapshot) {
@@ -103,7 +111,7 @@ function ChatScreeen({ chat, messages }) {
       </Header>
       <MessageContainer >
         {showMessages()}
-        <EndOfMessage />
+        <EndOfMessage ref={endOfMessagesRef} />
       </MessageContainer>
 
       <InputContainer>
@@ -178,7 +186,10 @@ const HeaderInformation = styled.div`
 const HeaderIcons = styled.div`
 `;
 
-const EndOfMessage = styled.div``;
+const EndOfMessage = styled.div`
+ margin-bottom: 50px;
+
+`;
 
 const MessageContainer = styled.div`
  padding : 30px;
