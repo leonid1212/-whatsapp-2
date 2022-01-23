@@ -1,6 +1,4 @@
 // Import the functions you need from the SDKs you need
-
-
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, addDoc, query, where, orderBy, getDoc } from 'firebase/firestore';
 import { debugErrorMap, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
@@ -39,12 +37,10 @@ const useMessages = (chatId) => {
     return result;
   }
 
-
   const addMessage = async (body) => {
     const docRef = await addDoc(messagesRef, body);
     return docRef.id;   
   }
-
 
   return { messagesResQuery, chatsRef, messages, addMessage };
 }
@@ -59,6 +55,14 @@ const getRecipients =  (users, user) => {
   const usersRef = collection(db, "users");
   const rQuery = query(usersRef, where('email', '==', getRecipientEmail(users,user)));
   return rQuery;
+}
+
+
+const getUserChatQuery = (user) => {
+   const chatsRef = collection(db, "chats");
+  // Create a query against the collection.
+  const userChatQuery = query(chatsRef, where('users', 'array-contains', user?.email));
+  return userChatQuery;
 }
 
 export {
@@ -80,5 +84,6 @@ export {
   useMessages,
   setUser,
   getRecipients,
+  getUserChatQuery,
 };
 
