@@ -177,7 +177,8 @@ const HeaderInformation = styled.div`
    }
 
    > p {
-     font-size: 14px;
+    margin-top: 0; 
+    font-size: 14px;
      color : gray;
    }
 `;
