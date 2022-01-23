@@ -1,6 +1,6 @@
 
 import styled from "styled-components";
-import { auth, serverTimestamp, useMessages, setUser } from "../firebase";
+import { auth, serverTimestamp, useMessages, setUser, getRecipients } from "../firebase";
 import { useAuthState } from "react-firebase-hooks/auth";
 import { useRouter } from "next/router";
 import { Avatar, IconButton } from "@material-ui/core";
@@ -10,7 +10,9 @@ import InsertEmoticonIcon from "@material-ui/icons/InsertEmoticon";
 import MicIcon from "@material-ui/icons/Mic";
 import { useCollection } from "react-firebase-hooks/firestore";
 import Message from "./Message";
+import getRecipientEmail from "../utils/getRecipientEmail";
 import { useState } from "react";
+import TimeAgo from "timeago-react";
 
 
 function ChatScreeen({ chat, messages }) {
@@ -18,7 +20,8 @@ function ChatScreeen({ chat, messages }) {
   const router = useRouter();
   const [input, setInput] = useState("");
   const { messagesResQuery, addMessage } = useMessages(router.query.id);
-  const [messagesSnapshots] = useCollection(messagesResQuery);
+  const [messagesSnapshot] = useCollection(messagesResQuery);
+  const [recipientSnaphot] = useCollection(getRecipients(chat.users, user));
 
   const sendMessage = (e) => {
     e.preventDefault();
@@ -34,15 +37,14 @@ function ChatScreeen({ chat, messages }) {
       photoURL: user.photoURL,
     });
 
-
     setInput("");
 
   }
 
 
   const showMessages = () => {
-    if (messagesSnapshots) {
-      return messagesSnapshots.docs.map(message => (
+    if (messagesSnapshot) {
+      return messagesSnapshot.docs.map(message => (
         <Message
           key={message.id}
           user={message.data().user}
@@ -52,16 +54,43 @@ function ChatScreeen({ chat, messages }) {
           }}
         />
       ))
+    } else {
+      const mes = JSON.parse(messages);
+      if (mes && mes.length) {
+        return mes.map(message => (
+          <Message key={message.id} user={message.user} message={message} />
+        ))
+      }
     }
   }
+
+  const recipient = recipientSnaphot?.docs?.[0]?.data();
+  const recipientEmail = getRecipientEmail(chat.users, user);
 
   return (
     <Container>
       <Header>
-        <Avatar />
+        {
+          recipient ? (
+            <Avatar src={recipient?.photoURL} />
+          ) : (
+            <Avatar >{recipientEmail[0]}</Avatar>
+          )
+        }
         <HeaderInformation >
-          <h3>Rec Email</h3>
-          <p>Last seen...</p>
+          <h3>{recipientEmail}</h3>
+          {recipientSnaphot ? (
+            <p>Last active : {' '}
+              {recipient?.lastSeen?.toDate() ? (
+                <TimeAgo datetime={recipient?.lastSeen?.toDate()} />
+              ) : (
+                "Unavailable"
+              )}
+            </p>
+          ) : (
+            <p>Loading Last active...</p>
+          )}
+
         </HeaderInformation>
         <HeaderIcons>
           <IconButton>

@@ -4,6 +4,7 @@
 import { initializeApp, getApp, getApps } from "firebase/app";
 import { getFirestore, collection, getDocs, doc, setDoc, serverTimestamp, addDoc, query, where, orderBy, getDoc } from 'firebase/firestore';
 import { debugErrorMap, getAuth, GoogleAuthProvider, signInWithPopup } from "firebase/auth";
+import getRecipientEmail from "./utils/getRecipientEmail";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDZqYdYS50Y8l1kgdnm5h_tyov1IiBg2dE",
@@ -54,6 +55,11 @@ const setUser = async (uid, data) => {
   await setDoc(doc(usersRef, uid), data, { merge: true });
 }
 
+const getRecipients =  (users, user) => {
+  const usersRef = collection(db, "users");
+  const rQuery = query(usersRef, where('email', '==', getRecipientEmail(users,user)));
+  return rQuery;
+}
 
 export {
   db,
@@ -73,5 +79,6 @@ export {
   orderBy,
   useMessages,
   setUser,
+  getRecipients,
 };
 

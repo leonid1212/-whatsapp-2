@@ -13,7 +13,7 @@ function Sidebar() {
   const [user] = useAuthState(auth);
   const chatsRef = collection(db, "chats");
   // Create a query against the collection.
-  const userChatRef = query(chatsRef, where('users', 'array-contains', user.email));
+  const userChatRef = query(chatsRef, where('users', 'array-contains', user?.email));
   const [chatsSnapshots] = useCollection(userChatRef);
   
 
@@ -77,6 +77,7 @@ const Container = styled.div`
   ::-webkit-scrollbar {
     display: none;
   }
+
   -ms-overflow-style : none; /* IE and Edge*/
   scrollbar-width : none; /* Firefox */
 

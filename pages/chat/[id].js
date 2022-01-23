@@ -12,14 +12,12 @@ function Chat({messages,chat}) {
   return (
     <Container>
       <Head>
-        <title>Chat with  {getRecipientEmail(chat.users,user)}</title>
-
+        <title>Chat with {getRecipientEmail(chat.users,user)}</title>
       </Head>
       <Sidebar />
       <ChatContainer >
         <ChatScreeen  chat={chat} messages={messages}/>
       </ChatContainer>
-
     </Container>
 
   )
@@ -37,8 +35,7 @@ export async function getServerSideProps(context) {
     ...docSnap.data(),
   }
 
-  const fbMessages = messages();
-
+  const fbMessages = await messages();
   return {
     props: {
       messages: JSON.stringify(fbMessages),
